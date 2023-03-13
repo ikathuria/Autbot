@@ -3,7 +3,7 @@
  <img width=200px height=200px src="https://i.imgur.com/6wj0hh6.jpg" alt="Project logo"></a>
 </p>
 
-<h3 align="center">Project Title</h3>
+<h3 align="center">Autbot</h3>
 
 <div align="center">
 
@@ -60,36 +60,13 @@ Give examples
 ### Datasets
 
 1. [Ryerson Audio-Visual Database of Emotional Speech and Song (RAVDESS)](https://zenodo.org/record/1188976#.Y9dkm3ZBy3A)  
-   Here is the filename identifiers as per the official RAVDESS website:
-   * Modality (01 = full-AV, 02 = video-only, 03 = audio-only).
-   * Vocal channel (01 = speech, 02 = song).
-   * Emotion (01 = neutral, 02 = calm, 03 = happy, 04 = sad, 05 = angry, 06 = fearful, 07 = disgust, 08 = surprised).
-   * Emotional intensity (01 = normal, 02 = strong). NOTE: There is no strong intensity for the 'neutral' emotion.
-   * Statement (01 = "Kids are talking by the door", 02 = "Dogs are sitting by the door").
-   * Repetition (01 = 1st repetition, 02 = 2nd repetition).
-   * Actor (01 to 24. Odd numbered actors are male, even numbered actors are female).
-
-   So, here's an example of an audio filename. 02-01-06-01-02-01-12.mp4  
-   This means the meta data for the audio file is:
-   * Video-only (02)
-   * Speech (01)
-   * Fearful (06)
-   * Normal intensity (01)
-   * Statement "dogs" (02)
-   * 1st Repetition (01)
-   * 12th Actor (12) - Female (as the actor ID number is even)
 2. [Crowd-sourced Emotional Mutimodal Actors Dataset (CREMA-D)](https://github.com/CheyneyComputerScience/CREMA-D)
 3. [Surrey Audio-Visual Expressed Emotion (SAVEE)](http://kahlan.eps.surrey.ac.uk/savee/Database.html)  
-   The audio files in this dataset are named in such a way that the prefix letters describes the emotion classes as follows:
-
-   * 'a' = 'anger'
-   * 'd' = 'disgust'
-   * 'f' = 'fear'
-   * 'h' = 'happiness'
-   * 'n' = 'neutral'
-   * 'sa' = 'sadness'
-   * 'su' = 'surprise'
 4. [Toronto emotional speech set (TESS)](https://tspace.library.utoronto.ca/handle/1807/24487)
+5. [Berlin Database of Emotional Speech (EMODB)](http://emodb.bilderbar.info/docu/)
+6. [The Interactive Emotional Dyadic Motion Capture Database (IEMOCAP)](https://sail.usc.edu/iemocap/index.html)
+
+[Detailed description of datasets](/DATASET.MD)
 
 ### Installing
 
