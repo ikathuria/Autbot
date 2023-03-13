@@ -1,5 +1,5 @@
 """
-This module contains the code for the speech emotion recognition project.
+This package contains the code for the speech emotion recognition.
 
 Modules:
     - datasets: contains the code for loading the datasets.
