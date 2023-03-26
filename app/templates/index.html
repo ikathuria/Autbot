@@ -1,13 +1,65 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} {% block title %} Autbot {% endblock %} {% block
+content %}
 
-{% block title %} Autbot {% endblock %}
+<div class="card">
+	<div class="card-body">
 
-{% block content %}
+		<main class="main-chat">
+			<div class="msg left-msg">
+				<div class="chatbot-icon" style="
+					background-image:
+					url(https://image.flaticon.com/icons/svg/327/327779.svg);
+					"></div>
 
-<div>
-	<div></div>
-	<button type="button" class="btn btn-dark" href="{{ url_for('start') }}">Start</button>
+				<div class="msg-bubble">
+					<div class="msg-info">
+						<div class="msg-info-name">Autbot</div>
+						<div class="msg-info-time">{{ start_datetime }}</div>
+					</div>
+
+					<div class="msg-text">
+						Hi, welcome to Autbot! Go ahead and send me a message. 😄
+					</div>
+				</div>
+			</div>
+		</main>
+
+	</div>
+
+	<div class="card-footer">
+		<form class="chatbot-input">
+			<div class="row align-items-center">
+				<div class="col-8">
+					<input type="text" id="userTextInput" class="form-control user-text-input"
+						name="user_text_input" placeholder="Enter your message..."
+						/>
+				</div>
+				<div class="btn-group col-4" role="group" aria-label="Submit buttons">
+					<button type="submit" id="recordButton" class="btn btn-outline-dark"
+						name="user_input" value="record">
+						Record Message
+					</button>
+					<button type="submit" id="pauseButton" class="btn btn-outline-dark"
+						name="user_input" value="pause">
+						Pause Recording
+					</button>
+					<button type="submit" id="stopButton" class="msger-send-btn btn btn-outline-dark"
+						name="user_input" value="stop">
+						Stop Recording
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
 
 </div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
+<script src="{{ url_for('static', filename='index.js') }}"></script>
 
 {% endblock %}

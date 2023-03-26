@@ -4,16 +4,45 @@ sys.path.append(os.path.abspath(os.path.join('..', 'Autbot')))
 sys.path.append(os.path.abspath(os.path.join('..', 'Autbot/speech_emotion')))
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
+import warnings
+warnings.filterwarnings("ignore")
+
 import gc
 import pandas as pd
 import numpy as np
+
+# text emotion
+from transformers import pipeline, logging
+logging.set_verbosity_error()
+
+# speech emotion
 from speech_emotion.features import extract_melspectrogram
 from keras.models import load_model
 
+
 print("----- Loading models -----")
+LABELS = pd.read_json(
+    "data/speech_labels.json", orient="index"
+).to_dict()[0]
+
 DATASET = "TESS"
 SPEECH_MODEL = load_model(f"model/{DATASET}_model_4.h5")
-SPEECH_LABELS = pd.read_json("data/speech_labels.json", orient="index").to_dict()[0]
+
+TEXT_MODEL = pipeline(
+    'sentiment-analysis',
+    model='arpanghoshal/EmoRoBERTa',
+    tokenizer='arpanghoshal/EmoRoBERTa',
+    device=0
+)
+TEXT_LABELS = [
+    'admiration', 'optimism', 'pride', 'realization',
+    'relief', 'amusement', 'approval', 'caring', 'desire',
+    'gratitude', 'joy', 'desire', 'excitement', 'curiosity',
+    'love', 'surprise', 'anger', 'annoyance', 'confusion',
+    'remorse', 'sadness', 'disappointment', 'nervousness',
+    'disapproval', 'disgust', 'embarrassment', 'grief', 'fear',
+]
+
 
 def speech_emotion(file="user.wav"):
     """
@@ -32,28 +61,61 @@ def text_emotion(text):
     """
     Predicts the emotion of the text.
     """
-    return "happy"
+    happy = [
+        'admiration', 'optimism', 'pride', 'realization',
+        'relief', 'amusement', 'approval', 'caring',
+        'desire', 'gratitude', 'joy', 'excitement',
+        'curiosity', 'love', 'surprise'
+    ]
+    angry = ['anger', 'annoyance']
+    sad = [
+        'confusion', 'remorse', 'sadness', 'disappointment',
+        'nervousness', 'disapproval', 'disgust', 'embarrassment',
+        'grief', 'fear',
+    ]
+
+    preds = [0, 0, 0, 0]
+    predictions = TEXT_MODEL(text, return_all_scores=True)[0]
+
+    for prediction in predictions:
+        key, val = list(prediction.values())
+        if key in angry:
+            preds[0] += val
+
+        elif key in happy:
+            preds[1] += val
+
+        elif key in sad:
+            preds[3] += val
+
+        else:
+            preds[2] += val
+
+    return np.array(preds)
 
 
-def predict_emotion(text, file="user.wav"):
+def predict_emotion(text="hi", file="user.wav"):
     """
     Predicts the emotion of the text and audio file.
     """
     s = speech_emotion(file)
     t = text_emotion(text)
 
-    return SPEECH_LABELS[np.argmax(s)]
-
     if np.argmax(s) == np.argmax(t):
-        return SPEECH_LABELS[np.argmax(s)]
+        return LABELS[np.argmax(s)], s[highest]
+
+    # print(
+    #     LABELS[np.argmax(s)],
+    #     s[np.argmax(s)],
+    #     LABELS[np.argmax(t)],
+    #     t[np.argmax(t)]
+    # )
 
     preds = s + t
-    print(s, t, preds)
+    highest = np.argmax(preds)
 
-    return SPEECH_LABELS[np.argmax(preds)]
-
-
+    return LABELS[highest], preds[highest]
 
 
 if __name__ == "__main__":
-    print(predict_emotion(text="I am angry", file="user.wav"))
+    print(predict_emotion(text="I am okay how are you", file="trial.wav"))

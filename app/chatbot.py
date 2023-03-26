@@ -1,16 +1,31 @@
 import os
 import time
+import nltk
+import string
+import pickle
 import datetime
 import numpy as np
 
-import speech_recognition as sr
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForCausalLM
+from nltk.stem.porter import PorterStemmer
+from sklearn.metrics.pairwise import linear_kernel
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 from gtts import gTTS
+import speech_recognition as sr
 
 from emotion_recognition import predict_emotion
 
-import transformers
 import warnings
 warnings.filterwarnings("ignore")
+
+
+chat_tokenizer = AutoTokenizer.from_pretrained(
+    "facebook/blenderbot-400M-distill"
+)
+chat_model = AutoModelForSeq2SeqLM.from_pretrained(
+    "facebook/blenderbot-400M-distill"
+)
 
 
 class User():
@@ -23,8 +38,11 @@ class User():
         Initialize the user.
         """
         self.name = name
-        self.emotion = None
+
         self.text = None
+
+        self.emotion = None
+        self.emotion_score = 0
 
     def say_goodbye(self):
         """
@@ -45,16 +63,17 @@ class ChatBot():
     Chatbot class.
     """
 
-    def __init__(self, model=None, name="Autbot"):
+    def __init__(self, name="Autbot"):
         """
         Initialize the chatbot.
         """
         print("----- Starting up chatbot -----")
         self.system_setup()
 
-        self.model = model
         self.name = name
+
         self.user = User()
+
         self.response = None
         self.awake = True
 
@@ -92,14 +111,16 @@ class ChatBot():
 
         try:
             self.user.text = recognizer.recognize_google(audio).lower()
-            self.user.emotion = predict_emotion(
-                text=self.user.text,
-                file="user.wav"
-            )
 
-            print('\n\n\n')
-            print(self.user.emotion)
-            print('\n\n\n')
+            if self.user.text != "ERROR":
+                self.user.emotion, self.user.emotion_score = predict_emotion(
+                    text=self.user.text,
+                    file="user.wav"
+                )
+
+                print('\n\n\n')
+                print(f"{self.user.emotion}: {self.user.emotion_score:.2f}")
+                print('\n\n\n')
 
         except Exception as e:
             print(e)
@@ -136,8 +157,9 @@ class ChatBot():
             self.response = "Sorry, I couldn't understand you. Could you repeat that?"
 
         # say goodbye
-        elif any(i in chatbot.user.text for i in ["bye", "exit", "close"]):
+        elif any(i in self.user.text for i in ["bye", "exit", "close"]):
             self.response = self.user.say_goodbye()
+            # self.save_history(self.user.name)
 
             os.remove("response.mp3")
             os.remove("user.wav")
@@ -150,12 +172,14 @@ class ChatBot():
 
         # conversation
         else:
-            chat = nlp(
-                transformers.Conversation(self.user.text),
-                pad_token_id=50256
-            )
-            response = str(chat)
-            self.response = response[response.find("bot >> ") + 6:].strip()
+            prompt = f"{self.user.text}. My emotion is {self.user.emotion}."
+            input_ids = chat_tokenizer([prompt], return_tensors="pt")
+
+            chat_response_ids = chat_model.generate(**input_ids)
+
+            self.response = chat_tokenizer.batch_decode(
+                chat_response_ids, skip_special_tokens=True
+            )[0]
 
     def wake_up(self):
         """
@@ -171,7 +195,9 @@ class ChatBot():
             self.listen()
 
         self.user.name = self.user.text
-        self.response = f"Nice to meet you {self.user.name}. How can I help you?"
+        # self.load_history(self.user.name)
+
+        self.response = f"Nice to meet you {self.user.name}. What would you like to talk about today?"
         self.speak()
 
     @staticmethod
@@ -183,12 +209,7 @@ class ChatBot():
 
 
 if __name__ == "__main__":
-    nlp = transformers.pipeline(
-        "conversational", model="microsoft/DialoGPT-medium"
-    )
-    os.environ["TOKENIZERS_PARALLELISM"] = "true"
-
-    chatbot = ChatBot(model=nlp)
+    chatbot = ChatBot()
 
     # wake up the chatbot
     chatbot.wake_up()
