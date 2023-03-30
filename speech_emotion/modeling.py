@@ -1,5 +1,10 @@
 """
 This module contains functions for creating and optimizing the model.
+
+Functions:
+    - create_model: Create the CNN + Transformer model.
+    - data: Load the data and split it into train and test sets for Hyperas.
+    - model: Create the CNN + Transformer model to test with Hyperas.
 """
 
 import numpy as np
@@ -8,7 +13,7 @@ from sklearn.model_selection import train_test_split
 
 from keras import Input, Model
 from keras.models import Sequential
-from keras.layers import Reshape, Permute, MultiHeadAttention, GlobalAveragePooling1D
+from keras.layers import Reshape, Permute, MultiHeadAttention
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 from keras.layers import Dropout, LayerNormalization
 from tensorflow.keras.optimizers import Adam

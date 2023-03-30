@@ -1,7 +1,12 @@
 """
 This module contains functions for plotting the data and model history.
-"""
 
+Functions:
+    - display_melspectrogram: Displays a mel spectrogram for a given audio file.
+    - display_waveplot: Displays a waveplot for a given audio file.
+    - display_spectrogram: Displays a spectrogram for a given audio file.
+    - display_model_history: Plots the model history.
+"""
 
 import numpy as np
 import librosa
