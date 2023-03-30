@@ -1,3 +1,12 @@
+"""
+This module contains functions for the emotion prediction.
+
+Functions:
+    - speech_emotion: Predict the emotion based on speech.
+    - text_emotion: Predict the emotion based on text.
+    - predict_emotion: Predict the emotion based on speech and text.
+"""
+
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join('..', 'Autbot')))
@@ -29,9 +38,8 @@ DATASET = "TESS"
 SPEECH_MODEL = load_model(f"model/{DATASET}_model_4.h5")
 
 TEXT_MODEL = pipeline(
-    'sentiment-analysis',
-    model='arpanghoshal/EmoRoBERTa',
-    tokenizer='arpanghoshal/EmoRoBERTa',
+    'text-classification',
+    model='j-hartmann/emotion-english-distilroberta-base',
     device=0
 )
 TEXT_LABELS = [
@@ -47,6 +55,12 @@ TEXT_LABELS = [
 def speech_emotion(file="user.wav"):
     """
     Predicts the emotion of the audio file.
+
+    Args:
+        file (str): Path to the audio file.
+
+    Returns:
+        preds (np.array): Predictions of the audio file.
     """
     feature = np.array([extract_melspectrogram(file)])
     preds = SPEECH_MODEL.predict(feature)[0]
@@ -60,19 +74,16 @@ def speech_emotion(file="user.wav"):
 def text_emotion(text):
     """
     Predicts the emotion of the text.
+
+    Args:
+        text (str): Text to predict the emotion.
+
+    Returns:
+        preds (np.array): Predictions of the text.
     """
-    happy = [
-        'admiration', 'optimism', 'pride', 'realization',
-        'relief', 'amusement', 'approval', 'caring',
-        'desire', 'gratitude', 'joy', 'excitement',
-        'curiosity', 'love', 'surprise'
-    ]
-    angry = ['anger', 'annoyance']
-    sad = [
-        'confusion', 'remorse', 'sadness', 'disappointment',
-        'nervousness', 'disapproval', 'disgust', 'embarrassment',
-        'grief', 'fear',
-    ]
+    happy = ['joy', 'surprise']
+    angry = ['anger']
+    sad = ['fear', 'sadness', 'disgust']
 
     preds = [0, 0, 0, 0]
     predictions = TEXT_MODEL(text, return_all_scores=True)[0]
@@ -97,6 +108,14 @@ def text_emotion(text):
 def predict_emotion(text="hi", file="user.wav"):
     """
     Predicts the emotion of the text and audio file.
+
+    Args:
+        text (str): Text to predict the emotion.
+        file (str): Path to the audio file.
+
+    Returns:
+        emotion (str): Predicted emotion.
+        confidence (float): Confidence of the prediction.
     """
     s = speech_emotion(file)
     t = text_emotion(text)
@@ -118,4 +137,9 @@ def predict_emotion(text="hi", file="user.wav"):
 
 
 if __name__ == "__main__":
-    print(predict_emotion(text="I am okay how are you", file="trial.wav"))
+    while True:
+        inp = input("Enter: ")
+        if inp == "q":
+            break
+        print(LABELS[np.argmax(text_emotion(inp))])
+    # print(predict_emotion(text="I am okay how are you", file="trial.wav"))

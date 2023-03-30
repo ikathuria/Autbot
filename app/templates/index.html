@@ -1,5 +1,7 @@
-{% extends 'base.html' %} {% block title %} Autbot {% endblock %} {% block
-content %}
+{% extends 'base.html' %}
+{% block title %} Autbot {% endblock %}
+
+{% block content %}
 
 <div class="card">
 	<div class="card-body">
@@ -14,11 +16,11 @@ content %}
 				<div class="msg-bubble">
 					<div class="msg-info">
 						<div class="msg-info-name">Autbot</div>
-						<div class="msg-info-time">{{ start_datetime }}</div>
+						<div id="chatbotTime" class="msg-info-time"></div>
 					</div>
 
 					<div class="msg-text">
-						Hi, welcome to Autbot! Go ahead and send me a message. 😄
+						Hello, I am Autbot. What would you like to talk about today? 😄
 					</div>
 				</div>
 			</div>
@@ -27,7 +29,7 @@ content %}
 	</div>
 
 	<div class="card-footer">
-		<form class="chatbot-input">
+		<form class="chatbot-input" method="post">
 			<div class="row align-items-center">
 				<div class="col-8">
 					<input type="text" id="userTextInput" class="form-control user-text-input"
@@ -35,16 +37,12 @@ content %}
 						/>
 				</div>
 				<div class="btn-group col-4" role="group" aria-label="Submit buttons">
-					<button type="submit" id="recordButton" class="btn btn-outline-dark"
-						name="user_input" value="record">
+					<button type="submit" id="recordButton" name="user_input" value="start"
+						class="btn btn-outline-dark">
 						Record Message
 					</button>
-					<button type="submit" id="pauseButton" class="btn btn-outline-dark"
-						name="user_input" value="pause">
-						Pause Recording
-					</button>
-					<button type="submit" id="stopButton" class="msger-send-btn btn btn-outline-dark"
-						name="user_input" value="stop">
+					<button type="submit" id="stopButton" name="user_input" value="stop"
+						class="msger-send-btn btn btn-outline-dark">
 						Stop Recording
 					</button>
 				</div>
@@ -56,10 +54,23 @@ content %}
 
 {% endblock %}
 
-
 {% block scripts %}
+<script>
+	var today = new Date();
+	var time = today.getHours() + ":" + today.getMinutes();
+	document.getElementById("chatbotTime").innerHTML = time
 
-<script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
-<script src="{{ url_for('static', filename='index.js') }}"></script>
+	// document.querySelector('#recordButton').addEventListener('click', function(){ 
+	// 	console.log('Starting Recording');
+	// 	document.getElementById("recordButton").disabled = true;
+	// 	document.getElementById("stopButton").disabled = false;
+	// });
 
+	// document.querySelector('#stopButton').addEventListener('click', function(){ 
+	// 	console.log('Stopping Recording');
+	// 	document.getElementById("stopButton").disabled = true;
+	// 	document.getElementById("recordButton").disabled = false;
+	// });
+
+</script>
 {% endblock %}
