@@ -31,7 +31,7 @@ from keras.models import load_model
 
 print("----- Loading models -----")
 LABELS = pd.read_json(
-    "data/speech_labels.json", orient="index"
+    "data/labels.json", orient="index"
 ).to_dict()[0]
 
 DATASET = "TESS"
