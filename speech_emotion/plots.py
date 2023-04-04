@@ -2,16 +2,55 @@
 This module contains functions for plotting the data and model history.
 
 Functions:
+    - display_counts: Displays the counts of each emotion in the dataset.
     - display_melspectrogram: Displays a mel spectrogram for a given audio file.
     - display_waveplot: Displays a waveplot for a given audio file.
     - display_spectrogram: Displays a spectrogram for a given audio file.
     - display_model_history: Plots the model history.
+    - evaluation_plots: Plots the confusion matrix, ROC curve, and precision-recall curve.
 """
 
 import numpy as np
+import sklearn.metrics as skmetrics
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+def display_counts(y, dataset):
+    """
+    This function displays the counts of each emotion in the dataset.
+
+    Args:
+        df: dataframe containing the data.
+    """
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    sns.countplot(
+        np.argmax(y, axis=1),
+        ax=ax
+    )
+
+    for i in ax.patches:
+        ax.text(
+            i.get_x() + 0.1,
+            i.get_height() + 1,
+            str(round(i.get_height(), 2)),
+            fontsize=12,
+            color="black"
+        )
+
+    ax.set_xticks(np.arange(4), ["angry", "happy", "neutral", "sad"])
+    plt.title(f"Counts of each emotion in {dataset}")
+    plt.show()
+
+    fig.savefig(
+        f"./data/plots/{dataset}_counts.png",
+        bbox_inches="tight",
+        dpi=300,
+        facecolor='white'
+    )
+
 
 
 def display_melspectrogram(path, e):
@@ -125,3 +164,86 @@ def display_model_history(model_history, val=True):
         ax2.legend(["loss"], loc="upper left")
 
     plt.show()
+
+
+def evaluation_plots(model, x_true, y_true, dataset):
+    """
+    Plots the confusion matrix, ROC curve, and precision-recall curve.
+
+    Args:
+        model: the model to evaluate.
+        x_true: the features.
+        y_true: the labels.
+        dataset: the dataset name.
+    """
+
+    y_pred = model.predict(x_true)
+
+    # confusion matrix
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    skmetrics.ConfusionMatrixDisplay.from_predictions(
+        np.argmax(y_true, axis=1),
+        np.argmax(y_pred, axis=1),
+        ax=ax
+    )
+    plt.show()
+    fig.savefig(
+        f"./data/plots/{dataset}_cm.png",
+        bbox_inches="tight",
+        dpi=300,
+        facecolor='white'
+    )
+
+    # ROC
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    skmetrics.RocCurveDisplay.from_predictions(
+        y_true.ravel(),
+        y_pred.ravel(),
+        name="micro-average OvR",
+        color="darkorange",
+        ax=ax
+    )
+    plt.ylim([0.94, 1.01])
+    plt.show()
+    fig.savefig(
+        f"./data/plots/{dataset}_roc.png",
+        bbox_inches="tight",
+        dpi=300,
+        facecolor='white'
+    )
+
+    # precision-recall
+    fig, ax = plt.subplots(2, 2, figsize=(10, 10))
+
+    precision = dict()
+    recall = dict()
+    for i in range(2):
+        for j in range(2):
+            class_label = i * 2 + j
+
+            precision[class_label], recall[class_label], _ = skmetrics.precision_recall_curve(
+                y_true[:, class_label],
+                y_pred[:, class_label],
+
+            )
+            ax[i][j].plot(
+                recall[class_label],
+                precision[class_label],
+                lw=2,
+            )
+
+            ax[i][j].set_title("Class {}".format(class_label))
+            ax[i][j].set_xlabel("Recall")
+            ax[i][j].set_ylabel("Precision")
+
+    plt.tight_layout()
+    plt.show()
+
+    fig.savefig(
+        f"./data/plots/{dataset}_pr.png",
+        bbox_inches="tight",
+        dpi=300,
+        facecolor='white'
+    )
+
+    return y_pred
