@@ -10,13 +10,15 @@ Functions:
         - text_to_speech: Convert text to speech.
         - generate_response: Generate a response to the user's input.
         - action_english: Teach the user English.
-        - action_time: Tell the user the current time.
 """
-
-import datetime
+import os
+import json
+import pandas as pd
 
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from gingerit.gingerit import GingerIt
+from keybert import KeyBERT
+from icrawler.builtin import GoogleImageCrawler
 
 from gtts import gTTS
 import speech_recognition as sr
@@ -33,6 +35,7 @@ CHAT_TOKENIZER = AutoTokenizer.from_pretrained(
 CHAT_MODEL = AutoModelForSeq2SeqLM.from_pretrained(
     "facebook/blenderbot-400M-distill"
 )
+KW_MODEL = KeyBERT(model='all-mpnet-base-v2')
 
 
 class User():
@@ -49,7 +52,7 @@ class User():
         self.text = None
         self.corrected_text = None
 
-        self.emotion = None
+        self.emotion = "neutral"
         self.emotion_score = 0
 
     def say_goodbye(self):
@@ -77,9 +80,9 @@ class ChatBot():
         """
         print("----- Starting up chatbot -----")
         self.user = User()
-
         self.response = None
-        self.awake = True
+        self.history = []
+        self.load_history()
 
     def speech_to_text(self, filename="user.wav"):
         """
@@ -100,6 +103,16 @@ class ChatBot():
                     file=filename
                 )
 
+                self.user.corrected_text = ENGLISH_PARSER.parse(
+                    self.user.text
+                )['result']
+
+                self.history.append({
+                    "text": [f"{self.user.text}", f"({self.user.corrected_text})"],
+                    "emotion": self.user.emotion,
+                    "isReceived": False
+                })
+
                 print('\n\n\n')
                 print(f"User: {self.user.text}")
                 print(f"{self.user.emotion}: {self.user.emotion_score:.2f}")
@@ -107,10 +120,6 @@ class ChatBot():
 
         except Exception as e:
             print(e)
-
-        self.user.corrected_text = ENGLISH_PARSER.parse(
-            self.user.text
-        )['result']
 
     def text_to_speech(self):
         """
@@ -133,17 +142,10 @@ class ChatBot():
         # say goodbye
         elif any(i in self.user.text for i in ["bye", "exit", "close"]):
             self.response = self.user.say_goodbye()
-            # self.save_history(self.user.name)
-
-            self.awake = False
 
         # learn english
         # elif "learn english" in self.user.text:
         #     pass
-
-        # see current time
-        elif "time" in self.user.text:
-            self.response = self.action_time()
 
         # conversation
         else:
@@ -156,6 +158,29 @@ class ChatBot():
                 chat_response_ids, skip_special_tokens=True
             )[0]
 
+        self.history.append({
+            "text": self.response,
+            "isReceived": True
+        })
+
+        # find keyword from response
+        kw = KW_MODEL.extract_keywords(
+            self.response,
+            keyphrase_ngram_range=(1, 1),
+            stop_words='english',
+            highlight=False,
+            top_n=1
+        )[0][0]
+
+        # download image related to response
+        google_crawler = GoogleImageCrawler(
+            storage={'root_dir': './app/static/images'}
+        )
+        google_crawler.crawl(keyword=kw, max_num=1, overwrite=True)
+
+        # save chat history
+        self.save_history()
+
     def action_english(self):
         """
         Teach english to the user.
@@ -164,12 +189,24 @@ class ChatBot():
         """
         pass
 
-    @staticmethod
-    def action_time():
+    def load_history(self):
         """
-        Return the current time.
+        Load the conversation history from a file.
         """
-        return datetime.datetime.now().time().strftime('%H:%M')
+        with open(f"./app/static/history/{self.user.name}.json") as file:
+            self.history = json.load(file)
+        
+        for i in self.history:
+            if not i['isReceived']:
+                self.user.emotion = i['emotion']
+            break
+
+    def save_history(self):
+        """
+        Save the conversation history to a file.
+        """
+        with open(f"./app/static/history/{self.user.name}.json", "w") as file:
+            json.dump(self.history, file)
 
 
 if __name__ == "__main__":

@@ -121,7 +121,7 @@ def predict_emotion(text="hi", file="user.wav"):
     t = text_emotion(text)
 
     if np.argmax(s) == np.argmax(t):
-        return LABELS[np.argmax(s)], s[highest]
+        return LABELS[np.argmax(s)], s[np.argmax(s)]
 
     # print(
     #     LABELS[np.argmax(s)],

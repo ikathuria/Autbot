@@ -2,52 +2,58 @@
 {% block title %} Autbot {% endblock %}
 
 {% block content %}
+<div class="container">
+	<!-- user mood -->
+	<div id="user-emotion" class="{{user_emotion}}">
+		<div id="user-emotion-icon">
+			{% if user_emotion == "happy" %}
+			<i class="fa-regular fa-face-smile-beam fa-2x"></i>
+			{% elif user_emotion == "sad" %}
+			<i class="fa-regular fa-face-frown fa-2x"></i>
+			{% elif user_emotion == "angry" %}
+			<i class="fa-regular fa-face-angry fa-2x"></i>
+			{% elif user_emotion == "neutral" %}
+			<i class="fa-regular fa-face-meh fa-2x"></i>
+			{% endif %}
+		</div>
+		<div id="user-emotion-label">
+			<p id="user-emotion-text">You are feeling</p>
+			<p id="user-emotion-value">{{user_emotion}}</p>
+		</div>
 
-<div class="card">
-	<div class="card-body">
+		<div id="loading" hidden>
+			<p id="loading-text">Loading Message...</p>
+		</div>
+	</div> <!-- end user mood -->
 
-		<main class="main-chat">
-			<div class="msg left-msg">
-				<div class="chatbot-icon" style="
-					background-image:
-					url(https://image.flaticon.com/icons/svg/327/327779.svg);
-					"></div>
+	<!-- messages -->
+	<div id="chat-wrapper">
+		<div id="chat-message-column-wrapper" class="scroll-bar">
+			<div id="chat-message-column" class="static"></div>
+		</div>
+	</div> <!-- end chat-wrapper -->
 
-				<div class="msg-bubble">
-					<div class="msg-info">
-						<div class="msg-info-name">Autbot</div>
-						<div id="chatbotTime" class="msg-info-time"></div>
-					</div>
+	<div id="message-input-wrapper" class="align-items-end text-center">
+		<!-- user input -->
+		<form method="post">
+			<div id="user-message-buttons" class="btn-group"
+				role="group" aria-label="Submit buttons">
 
-					<div class="msg-text">
-						Hello, I am Autbot. What would you like to talk about today? 😄
-					</div>
-				</div>
+				<button type="submit" id="start-input-button"
+					class="btn"
+					name="user_input" value="start">
+					<i class="fa-solid fa-microphone"></i>
+					Record Message
+				</button>
+				<button type="submit" id="stop-input-button"
+					class="msger-send-btn btn"
+					name="user_input" value="stop"
+					onclick="setLoad()">
+					<i class="fa-solid fa-microphone-slash"></i>
+					Stop Recording
+				</button>
 			</div>
-		</main>
-
-	</div>
-
-	<div class="card-footer">
-		<form class="chatbot-input" method="post">
-			<div class="row align-items-center">
-				<div class="col-8">
-					<input type="text" id="userTextInput" class="form-control user-text-input"
-						name="user_text_input" placeholder="Enter your message..."
-						/>
-				</div>
-				<div class="btn-group col-4" role="group" aria-label="Submit buttons">
-					<button type="submit" id="recordButton" name="user_input" value="start"
-						class="btn btn-outline-dark">
-						Record Message
-					</button>
-					<button type="submit" id="stopButton" name="user_input" value="stop"
-						class="msger-send-btn btn btn-outline-dark">
-						Stop Recording
-					</button>
-				</div>
-			</div>
-		</form>
+		</form> <!-- end user message buttons -->
 	</div>
 
 </div>
@@ -55,22 +61,147 @@
 {% endblock %}
 
 {% block scripts %}
+
+<!-- 
+	send greeting
+	user records message
+	when stop pressed, check for input, response, emotion
+	get values and add user chat to window
+	add chatbot response to window
+	wait for user input for 1 min
+		if no input, send random message
+		if input, repeat process
+ -->
 <script>
-	var today = new Date();
-	var time = today.getHours() + ":" + today.getMinutes();
-	document.getElementById("chatbotTime").innerHTML = time
+	const CHAT_MESSAGE_COLUMN_WRAPPER = document.getElementById('chat-message-column-wrapper'),
+		CHAT_MESSAGE_COLUMN = document.getElementById('chat-message-column'),
+		STOP_BUTTON = document.getElementById('stop-input-button'),
+		MESSAGES = JSON.parse('{{ history | tojson | safe}}');
 
-	// document.querySelector('#recordButton').addEventListener('click', function(){ 
-	// 	console.log('Starting Recording');
-	// 	document.getElementById("recordButton").disabled = true;
-	// 	document.getElementById("stopButton").disabled = false;
-	// });
+	const STATE = {
+		isUserSendingMessage: false,
+		isChatBotSendingMessage: false,
+		currentMood: '{{user_emotion}}',
+	};
 
-	// document.querySelector('#stopButton').addEventListener('click', function(){ 
-	// 	console.log('Stopping Recording');
-	// 	document.getElementById("stopButton").disabled = true;
-	// 	document.getElementById("recordButton").disabled = false;
-	// });
+	function createChatMessage (text, isReceived, img) {
+		let message = document.createElement('div'),
+			profileIcon = document.createElement('div'),
+			icon = document.createElement('i'),
+			content = document.createElement('div'),
+			contentText1 = document.createElement('p'),
+			contentText2 = document.createElement('p'),
+			contentImg = document.createElement('img'),
+			direction = isReceived ? 'received' : 'sent';
+
+		content.classList.add('content');
+		contentText1.classList.add('text');
+		contentText2.classList.add('corrected-text');
+
+		content.appendChild(contentText1);
+
+		if (img == true) {
+			contentImg.classList.add('bot-img');
+			contentImg.classList.add('img-thumbnail');
+			contentImg.src = "{{ url_for('static', filename='images/000001.jpg') }}";
+			content.appendChild(contentImg);
+		} 
+
+		// add profile icon to message
+		profileIcon.classList.add('profile-icon');
+		profileIcon.appendChild(icon);
+
+		message.classList.add('message');
+		message.classList.add(direction);
+
+		if (isReceived) {                     // chatbot message
+			contentText1.innerHTML = text;
+			icon.classList.add('fa-solid');
+			icon.classList.add('fa-robot');
+			message.classList.add(STATE.currentMood);
+			message.appendChild(profileIcon);
+			message.appendChild(content);
+
+		} else {                             // user message
+			icon.classList.add('fa-solid');
+			icon.classList.add('fa-user');
+			message.classList.add(STATE.currentMood);
+			message.appendChild(content);
+			message.appendChild(profileIcon);
+			content.appendChild(contentText2);
+
+			// add text to message
+			contentText1.innerHTML = text[0];
+			contentText2.innerHTML = text[1];
+		}
+		return message;
+	};
+
+	// add message to window
+	function addChatMessage (text, isReceived, img) {
+		const message = createChatMessage(text, isReceived, img);
+		CHAT_MESSAGE_COLUMN.appendChild(message);
+	};
+
+	// send message from chatbot
+	function sendChatbotMessage (text, img) {
+		console.log('sending message');
+		STATE.isChatBotSendingMessage = true;
+		addChatMessage(text, true, img);
+
+		setTimeout(() => {
+			STATE.isChatBotSendingMessage = false;
+		}, 1000);
+	};
+
+	// send message from user
+	function sendUserMessage (text) {
+		STATE.isUserSendingMessage = true;
+		addChatMessage(text, false, false);
+
+		setTimeout(() => {
+			STATE.isUserSendingMessage = false;
+		}, 1000);
+	};
+
+	// add all messages to column
+	function init () {
+		var img = true;
+		for (var i = 0; i < MESSAGES.length; i++) {
+			if (MESSAGES[i].isReceived) {
+				sendChatbotMessage(MESSAGES[i].text, img);
+
+			} else {
+				sendUserMessage(MESSAGES[i].text);
+			}
+			img = false;
+		}
+		sendChatbotMessage("Hello, I am Autbot. What would you like to talk about today? 😄", false);
+	};
+
+	// loading message
+	function setLoad() {
+		document.getElementById("loading").hidden = false;
+	};
+
+	// start
+	window.onload = init();
+
+	// check for inactivity
+	async function checkInactivity() {
+		const response = await fetch("/inactivity");
+		const jsonData = await response.json();
+		const time_diff = jsonData.time_diff;
+
+		console.log('Checkout this JSON! ', time_diff);
+
+		if (time_diff >= 45) {
+			console.log('Time difference is above 45');
+			// sendChatbotMessage("Do you want to talk about something else?", false);
+			// window.location.reload();
+		};
+	};
+	window.setInterval(checkInactivity, 5000);
 
 </script>
 {% endblock %}
