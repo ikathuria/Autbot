@@ -2,7 +2,23 @@
 {% block title %} Autbot {% endblock %}
 
 {% block content %}
-<div class="container">
+<div id="loading-gif-bg" hidden>
+	<img
+		src="{{ url_for('static', filename='images/loading cat.gif') }}"
+		id="loading-gif"
+		class="img-thumbnail">
+	<button id="loading-gif-button" class="btn btn-danger" onclick="changeGIF()">
+		Mix it up! </button>
+</div>
+
+<div id="listening-gif-bg" hidden>
+	<img
+		src="{{ url_for('static', filename='images/listening.gif') }}"
+		id="listening-gif"
+		class="img-thumbnail">
+</div>
+
+<div id="chat-background" class="container">
 	<!-- user mood -->
 	<div id="user-emotion" class="{{user_emotion}}">
 		<div id="user-emotion-icon">
@@ -20,20 +36,27 @@
 			<p id="user-emotion-text">You are feeling</p>
 			<p id="user-emotion-value">{{user_emotion}}</p>
 		</div>
-
-		<div id="loading" hidden>
-			<p id="loading-text">Loading Message...</p>
-		</div>
 	</div> <!-- end user mood -->
 
 	<!-- messages -->
 	<div id="chat-wrapper">
 		<div id="chat-message-column-wrapper" class="scroll-bar">
-			<div id="chat-message-column" class="static"></div>
+			<div id="chat-message-column" class="static">
+				<div id="inactive-check" class="message received" hidden>
+					<div class="profile-icon">
+						<i class="fa-solid fa-robot"></i>
+					</div>
+					<div class="content">
+						<p class="text">Would you like to talk about something else?</p>
+						<audio class="bot-audio" controls src="{{ url_for('static', filename='audio/Inactivity.mp3') }}">
+						</audio>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div> <!-- end chat-wrapper -->
 
-	<div id="message-input-wrapper" class="align-items-end text-center">
+	<div id="message-input-wrapper">
 		<!-- user input -->
 		<form method="post">
 			<div id="user-message-buttons" class="btn-group"
@@ -41,7 +64,8 @@
 
 				<button type="submit" id="start-input-button"
 					class="btn"
-					name="user_input" value="start">
+					name="user_input" value="start"
+					onclick="setListen()">
 					<i class="fa-solid fa-microphone"></i>
 					Record Message
 				</button>
@@ -55,28 +79,17 @@
 			</div>
 		</form> <!-- end user message buttons -->
 	</div>
-
-</div>
+</div> <!-- end chat-background -->
 
 {% endblock %}
 
 {% block scripts %}
-
-<!-- 
-	send greeting
-	user records message
-	when stop pressed, check for input, response, emotion
-	get values and add user chat to window
-	add chatbot response to window
-	wait for user input for 1 min
-		if no input, send random message
-		if input, repeat process
- -->
 <script>
 	const CHAT_MESSAGE_COLUMN_WRAPPER = document.getElementById('chat-message-column-wrapper'),
 		CHAT_MESSAGE_COLUMN = document.getElementById('chat-message-column'),
 		STOP_BUTTON = document.getElementById('stop-input-button'),
-		MESSAGES = JSON.parse('{{ history | tojson | safe}}');
+		MESSAGES = JSON.parse('{{ history | tojson | safe}}'),
+		BACK = document.getElementById('background');
 
 	const STATE = {
 		isUserSendingMessage: false,
@@ -84,7 +97,7 @@
 		currentMood: '{{user_emotion}}',
 	};
 
-	function createChatMessage (text, isReceived, img) {
+	function createChatMessage (text, isReceived, img, talk) {
 		let message = document.createElement('div'),
 			profileIcon = document.createElement('div'),
 			icon = document.createElement('i'),
@@ -92,6 +105,7 @@
 			contentText1 = document.createElement('p'),
 			contentText2 = document.createElement('p'),
 			contentImg = document.createElement('img'),
+			contentAudio = document.createElement('audio'),
 			direction = isReceived ? 'received' : 'sent';
 
 		content.classList.add('content');
@@ -103,9 +117,17 @@
 		if (img == true) {
 			contentImg.classList.add('bot-img');
 			contentImg.classList.add('img-thumbnail');
-			contentImg.src = "{{ url_for('static', filename='images/000001.jpg') }}";
+			contentImg.src = "{{ image_path }}";
 			content.appendChild(contentImg);
-		} 
+		}
+
+		if (talk == true) {
+			contentAudio.classList.add('bot-audio');
+			contentAudio.setAttribute('controls', '');
+			contentAudio.setAttribute('autoplay', '');
+			contentAudio.src = "{{ response_path }}";
+			content.appendChild(contentAudio);
+		}
 
 		// add profile icon to message
 		profileIcon.classList.add('profile-icon');
@@ -113,6 +135,7 @@
 
 		message.classList.add('message');
 		message.classList.add(direction);
+		BACK.classList.add(STATE.currentMood);
 
 		if (isReceived) {                     // chatbot message
 			contentText1.innerHTML = text;
@@ -138,16 +161,15 @@
 	};
 
 	// add message to window
-	function addChatMessage (text, isReceived, img) {
-		const message = createChatMessage(text, isReceived, img);
+	function addChatMessage (text, isReceived, img, talk) {
+		const message = createChatMessage(text, isReceived, img, talk);
 		CHAT_MESSAGE_COLUMN.appendChild(message);
 	};
 
 	// send message from chatbot
-	function sendChatbotMessage (text, img) {
-		console.log('sending message');
+	function sendChatbotMessage (text, img, talk) {
 		STATE.isChatBotSendingMessage = true;
-		addChatMessage(text, true, img);
+		addChatMessage(text, true, img, talk);
 
 		setTimeout(() => {
 			STATE.isChatBotSendingMessage = false;
@@ -157,7 +179,7 @@
 	// send message from user
 	function sendUserMessage (text) {
 		STATE.isUserSendingMessage = true;
-		addChatMessage(text, false, false);
+		addChatMessage(text, false, false, false);
 
 		setTimeout(() => {
 			STATE.isUserSendingMessage = false;
@@ -167,21 +189,47 @@
 	// add all messages to column
 	function init () {
 		var img = true;
+		var talk = true;
 		for (var i = 0; i < MESSAGES.length; i++) {
 			if (MESSAGES[i].isReceived) {
-				sendChatbotMessage(MESSAGES[i].text, img);
-
+				sendChatbotMessage(MESSAGES[i].text, img, talk);
 			} else {
 				sendUserMessage(MESSAGES[i].text);
 			}
 			img = false;
+			talk = false;
 		}
 		sendChatbotMessage("Hello, I am Autbot. What would you like to talk about today? 😄", false);
+		changeGIF();
+	};
+
+	// listening message
+	function setListen() {
+		document.getElementById("listening-gif-bg").hidden = false;
 	};
 
 	// loading message
 	function setLoad() {
-		document.getElementById("loading").hidden = false;
+		document.getElementById("listening-gif-bg").hidden = true;
+		document.getElementById("loading-gif-bg").hidden = false;
+	};
+
+	// get random integer between min and max
+	function getRndInteger(min, max) {
+		return Math.floor(Math.random() * (max - min + 1) ) + min;
+	}
+
+	// change loading gif
+	function changeGIF() {
+		var allGIFs = [
+			"{{ url_for('static', filename='images/loading cat.gif') }}",
+			"{{ url_for('static', filename='images/loading dog.gif') }}",
+			"{{ url_for('static', filename='images/loading elephant.gif') }}",
+			"{{ url_for('static', filename='images/loading goat.gif') }}",
+			"{{ url_for('static', filename='images/loading tiger.gif') }}"
+		];
+		var randomGIF = allGIFs[getRndInteger(0, 4)];
+		document.getElementById("loading-gif").setAttribute("src", randomGIF);
 	};
 
 	// start
@@ -193,12 +241,8 @@
 		const jsonData = await response.json();
 		const time_diff = jsonData.time_diff;
 
-		console.log('Checkout this JSON! ', time_diff);
-
 		if (time_diff >= 45) {
-			console.log('Time difference is above 45');
-			// sendChatbotMessage("Do you want to talk about something else?", false);
-			// window.location.reload();
+			document.getElementById("inactive-check").hidden = false;
 		};
 	};
 	window.setInterval(checkInactivity, 5000);

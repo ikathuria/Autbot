@@ -3,6 +3,7 @@ body {
   font-family: "Roboto", sans-serif;
   width: 100%;
   height: 100%;
+  overflow-x: hidden;
 }
 
 *,
@@ -13,61 +14,115 @@ body {
   box-sizing: inherit;
 }
 
+#main-nav {
+  background: transparent;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------- */
+/*======================
+    Listening gif
+=======================*/
+
+#listening-gif-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 50;
+}
+
+#listening-gif {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 40rem;
+  width: 40rem;
+  z-index: 51;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------- */
+/*======================
+    Loading gif
+=======================*/
+
+#loading-gif-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 50;
+}
+
+#loading-gif {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 40rem;
+  width: 40rem;
+  z-index: 51;
+}
+
+#loading-gif-button {
+  position: absolute;
+  top: 80%;
+  left: 50%;
+  transform: translate(-50%, -80%);
+  height: 2rem;
+  width: 8rem;
+  font-size: 1.3rem;
+  z-index: 52;
+}
+
+/*======================
+    Main page background
+=======================*/
+
+#background {
+  min-height: 94vh;
+}
+
+#background h1 {
+  color: white;
+  font-family: "Itim", cursive;
+}
+
+/* user_emotion = angry */
+#background.angry {
+  background: linear-gradient(to right, #d32f2f, #ff6f00);
+}
+
+/* user_emotion = happy */
+#background.happy {
+  background: linear-gradient(to right, #03a9f4, #4caf50);
+}
+
+/* user_emotion = neutral */
+#background.neutral {
+  background: linear-gradient(to right, #8f6112, #c1b567);
+}
+
+/* user_emotion = sad */
+#background.sad {
+  background: linear-gradient(to right, #0048ff, #2dbdfb);
+}
+
+#chat-background {
+  background-color: white;
+}
+
 /*======================
     Chatbot
 =======================*/
 
 /* User Emotion --------------------------------------------------------------------------------------------------- */
-/* user_emotion = angry */
-#user-emotion.angry #user-emotion-icon {
-  background: linear-gradient(to right, #d32f2f, #ff6f00);
-}
-#user-emotion.angry #user-emotion-label #user-emotion-value {
-  color: #d32f2f;
-}
-#chat-message-column
-  .message.angry
-  .profile-icon {
-  background: linear-gradient(to right, #d32f2f, #ff6f00);
-}
-
-/* user_emotion = happy */
-#user-emotion.happy #user-emotion-icon {
-  background: linear-gradient(to right, #03a9f4, #4caf50);
-}
-#user-emotion.happy #user-emotion-label #user-emotion-value {
-  color: #03a9f4;
-}
-#chat-message-column
-  .message.happy
-  .profile-icon {
-  background: linear-gradient(to right, #03a9f4, #4caf50);
-}
-
-/* user_emotion = neutral */
-#user-emotion.neutral #user-emotion-icon {
-  background: linear-gradient(to right, #8f6112, #c1b567);
-}
-#user-emotion.neutral #user-emotion-label #user-emotion-value {
-  color: #8f6112;
-}
-#chat-message-column
-  .message.neutral
-  .profile-icon {
-  background: linear-gradient(to right, #8f6112, #c1b567);
-}
-
-/* user_emotion = sad */
-#user-emotion.sad #user-emotion-icon {
-  background: linear-gradient(to right, #0048ff, #2dbdfb);
-}
-#user-emotion.sad #user-emotion-label #user-emotion-value {
-  color: #0048ff;
-}
-#chat-message-column
-  .message.sad
-  .profile-icon {
-  background: linear-gradient(to right, #0048ff, #2dbdfb);
+#user-emotion {
+  padding-top: 10px;
 }
 
 #user-emotion-icon {
@@ -105,32 +160,58 @@ body {
   color: #3c3c3c;
 }
 
-#loading {
-  vertical-align: top;
-  border-radius: 20px;
-  background-color: white;
-  display: inline-block;
-  height: 20px;
-  margin-left: 5px;
-  padding: 5px 15px;
-  box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 6px, rgba(0, 0, 0, 0.12) 0px 1px 4px;
+/* user_emotion = angry */
+#user-emotion.angry #user-emotion-icon {
+  background: linear-gradient(to right, #d32f2f, #ff6f00);
+}
+#user-emotion.angry #user-emotion-label #user-emotion-value {
+  color: #d32f2f;
+}
+#chat-message-column .message.angry .profile-icon {
+  background: linear-gradient(to right, #d32f2f, #ff6f00);
 }
 
-#loading-text {
-  font-size: 0.9em;
-  font-weight: 500;
-  line-height: 20px;
-  color: rgb(255, 0, 0);
-  vertical-align: top;
-  display: inline-block;
-  margin: 0px;
-  height: 20px;
+/* user_emotion = happy */
+#user-emotion.happy #user-emotion-icon {
+  background: linear-gradient(to right, #03a9f4, #4caf50);
+}
+#user-emotion.happy #user-emotion-label #user-emotion-value {
+  color: #03a9f4;
+}
+#chat-message-column .message.happy .profile-icon {
+  background: linear-gradient(to right, #03a9f4, #4caf50);
+}
+
+/* user_emotion = neutral */
+#user-emotion.neutral #user-emotion-icon {
+  background: linear-gradient(to right, #8f6112, #c1b567);
+}
+#user-emotion.neutral #user-emotion-label #user-emotion-value {
+  color: #8f6112;
+}
+#chat-message-column .message.neutral .profile-icon {
+  background: linear-gradient(to right, #8f6112, #c1b567);
+}
+
+/* user_emotion = sad */
+#user-emotion.sad #user-emotion-icon {
+  background: linear-gradient(to right, #0048ff, #2dbdfb);
+}
+#user-emotion.sad #user-emotion-label #user-emotion-value {
+  color: #0048ff;
+}
+#chat-message-column .message.sad .profile-icon {
+  background: linear-gradient(to right, #0048ff, #2dbdfb);
 }
 
 /* Message buttons ------------------------------------------------------------------------------------------------------- */
 #message-input-wrapper {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0%);
   margin-top: 10px;
   height: 5vh;
+  z-index: 100;
 }
 
 #user-message-buttons {
@@ -191,16 +272,13 @@ body {
 }
 
 /* Message --------------------------------------------------------------------------------------------------------- */
-#chat-message-column
-  .message {
+#chat-message-column .message {
   animation: expand 0.5s ease-in-out;
   margin-bottom: 20px;
   white-space: nowrap;
 }
 
-#chat-message-column
-  .message
-  .profile-icon {
+#chat-message-column .message .profile-icon {
   height: 50px;
   width: 50px;
   border-radius: 100px;
@@ -210,19 +288,14 @@ body {
   animation-delay: 0.25s;
 }
 
-#chat-message-column
-  .message
-  .profile-icon
-  i {
+#chat-message-column .message .profile-icon i {
   height: 50px;
   line-height: 50px;
   text-align: center;
   width: 50px;
 }
 
-#chat-message-column
-  .message
-  .content {
+#chat-message-column .message .content {
   max-width: 300px;
   padding: 15px 20px;
   display: inline-block;
@@ -234,10 +307,7 @@ body {
   transition: all 0.5s;
 }
 
-#chat-message-column
-  .message
-  .content
-  .text {
+#chat-message-column .message .content .text {
   color: #000000;
   font-size: 1em;
   font-weight: 300;
@@ -247,10 +317,7 @@ body {
   word-wrap: break-word;
 }
 
-#chat-message-column
-  .message
-  .content
-  .corrected-text {
+#chat-message-column .message .content .corrected-text {
   color: #b4b4b4;
   font-size: 1em;
   font-weight: 300;
@@ -259,50 +326,40 @@ body {
   transition: all 0.5s;
   word-wrap: break-word;
 }
-#chat-message-column
-  .message
-  .content
-  .text
-  span {
+
+#chat-message-column .message .content .bot-audio {
+  margin-top: 10px;
+}
+
+#chat-message-column .message .content .text span {
   height: 20px;
 }
 
 /* Message received */
-#chat-message-column
-  .message.received {
+#chat-message-column .message.received {
   text-align: left;
 }
 
-#chat-message-column
-  .message
-  .profile-icon {
+#chat-message-column .message .profile-icon {
   font-size: 1.5em;
 }
 
-#chat-message-column
-  .message.received
-  .profile-icon
-  i:before {
+#chat-message-column .message.received .profile-icon i:before {
   display: inline-block;
 }
 
-#chat-message-column
-  .message.received
-  .content {
+#chat-message-column .message.received .content {
   animation: bounceInLeft 1s ease-in-out;
   animation-delay: 0.2s;
   margin-left: 20px;
 }
 
 /* Message sent */
-#chat-message-column
-  .message.sent {
+#chat-message-column .message.sent {
   text-align: right;
 }
 
-#chat-message-column
-  .message.sent
-  .content {
+#chat-message-column .message.sent .content {
   animation: bounceInRight 1s ease-in-out;
   animation-delay: 0.2s;
   margin-right: 20px;
@@ -469,4 +526,21 @@ body {
   50% {
     color: #03a9f4;
   }
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------- */
+/*======================
+    About Page
+=======================*/
+
+#about-section {
+  margin-top: 30px;
+}
+
+#about-section h2 {
+  font-family: Poppins;
+}
+
+#about-section h3 {
+  font-family: Poppins;
 }

@@ -12,8 +12,10 @@ Functions:
         - action_english: Teach the user English.
 """
 import os
+import time
 import json
 import pandas as pd
+from datetime import datetime
 
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from gingerit.gingerit import GingerIt
@@ -79,9 +81,15 @@ class ChatBot():
         Initialize the chatbot.
         """
         print("----- Starting up chatbot -----")
+        self.google_crawler = GoogleImageCrawler(
+            storage={'root_dir': './app/static/images'}
+        )
+        
         self.user = User()
         self.response = None
+        self.response_audio = 1
         self.history = []
+
         self.load_history()
 
     def speech_to_text(self, filename="user.wav"):
@@ -125,12 +133,49 @@ class ChatBot():
         """
         Convert text to speech.
         """
+        # remove old audio
+        try:
+            os.remove(f"./app/static/audio/{self.response_audio - 1}.mp3")
+        except Exception as e:
+            pass
+
         speaker = gTTS(
             text=self.response,
             lang="en",
             slow=False
         )
-        speaker.save("response.mp3")
+
+        speaker.save(f"./app/static/audio/{self.response_audio}.mp3")
+        self.response_audio += 1
+        time.sleep(1)
+
+    def get_image(self):
+        """
+        Get an image related to the response.
+        """
+        # remove old images
+        try:
+            os.remove(f"./app/static/images/000001.jpg")
+        except Exception as e1:
+            try:
+                os.remove(f"./app/static/images/000001.png")
+            except Exception as e2:
+                pass
+
+        # find keyword from response
+        kw = KW_MODEL.extract_keywords(
+            self.response,
+            keyphrase_ngram_range=(1, 1),
+            stop_words='english',
+            highlight=False,
+            top_n=1
+        )[0][0]
+
+        self.google_crawler.crawl(
+            keyword=kw + " gif",
+            max_num=1,
+            overwrite=True
+        )
 
     def generate_response(self):
         """
@@ -172,11 +217,11 @@ class ChatBot():
             top_n=1
         )[0][0]
 
+        # convert response to speech and save
+        self.text_to_speech()
+
         # download image related to response
-        google_crawler = GoogleImageCrawler(
-            storage={'root_dir': './app/static/images'}
-        )
-        google_crawler.crawl(keyword=kw, max_num=1, overwrite=True)
+        self.get_image()
 
         # save chat history
         self.save_history()
@@ -196,10 +241,16 @@ class ChatBot():
         with open(f"./app/static/history/{self.user.name}.json") as file:
             self.history = json.load(file)
         
+        self.response = self.history[-1]['text']
+        self.get_image()
+        self.text_to_speech()
+
         for i in self.history:
             if not i['isReceived']:
+                self.user.text = i['text'][0]
+                self.user.corrected_text = i['text'][1]
                 self.user.emotion = i['emotion']
-            break
+                break
 
     def save_history(self):
         """

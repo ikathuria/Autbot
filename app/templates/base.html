@@ -17,7 +17,7 @@
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link
-			href="https://fonts.googleapis.com/css2?family=Nunito:wght@300&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Nunito:wght@300&display=swap&family=Itim&family=Poppins:wght@600&display=swap"
 			rel="stylesheet">
 
 		<!-- Bootstrap & jQuery -->
@@ -65,11 +65,15 @@
 		</nav>
 
 		<!-- main content -->
-		<div class="jumbotron">
-			<h1 class="display-1 text-center">{% block title %}{% endblock %}</h1>
+		<div id="background">
+			<div class="text-center">
+				<img src="{{ url_for('static', filename='images/title.gif') }}"
+				 style="height: 100px;">
+			</div>
+			{% block content %}{% endblock %}
 		</div>
 
-		{% block content %}{% endblock %}
+		
 
 		{% block scripts %}{% endblock %}
 

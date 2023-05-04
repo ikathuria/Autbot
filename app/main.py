@@ -6,6 +6,8 @@ Functions:
     - get_input: Form response for chatbot.
     - about: About page.
 """
+import os
+import glob
 from threading import Thread
 from datetime import datetime
 
@@ -26,6 +28,21 @@ USER_RECORDING = AudioRecording()
 CHATBOT = ChatBot()
 
 
+def get_latest_image():
+    """
+    Get latest downloaded image for chabot reponse.
+    """
+    path = "./app/static/images/"
+    files = os.listdir(path)
+    paths = [os.path.join(path, basename) for basename in files]
+    latest_img = max(paths, key=os.path.getctime).replace(path, '')
+
+    if latest_img.split('.')[-1] == 'gif':
+        return 'default.gif'
+
+    return latest_img
+
+
 # INACTIVITY ---------------------------------------------------------------------
 @APP.route("/inactivity")
 def check_inactivity():
@@ -42,14 +59,10 @@ def check_inactivity():
         time_diff = (curr_time - USER_RECORDING.last_chat).seconds
 
         if time_diff >= 45:
-            CHATBOT.history.append({
-                "text": "Do you want to talk about something else?",
-                "isReceived": True
-            })
-            CHATBOT.save_history()
             break
 
         return jsonify({"time_diff": time_diff})
+
     return jsonify({"time_diff": time_diff})
 
 
@@ -74,7 +87,6 @@ def home():
             CHATBOT.generate_response()
 
             USER_RECORDING.last_chat = datetime.now()
-            # Thread(target=check_inactivity).start()
 
     return render_template(
         "index.html",
@@ -82,6 +94,8 @@ def home():
         history=CHATBOT.history[::-1],
         last_chat=USER_RECORDING.last_chat,
         recording=USER_RECORDING.recording,
+        image_path=url_for('static', filename='images/' + get_latest_image()),
+        response_path=url_for('static', filename='images/' + str(CHATBOT.response_audio - 1)),
     )
 
 
@@ -100,6 +114,5 @@ if __name__ == "__main__":
         ENV = "development",
         DEBUG = True,
         TESTING = True,
-        # SERVER_NAME = "localhost:5000",
     )
-    APP.run(threaded=True)
+    APP.run()

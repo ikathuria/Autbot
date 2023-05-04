@@ -4,8 +4,31 @@
 
 {% block content %}
 
-<div class="container">
-	<p>Hi! This is Autbot, an AI chatbot to help children with Autism learn how to better socialize and improve their English language skills.</p>
+<div id="about-section" class="container text-center">
+	<div class="row">
+		<div class="col">
+			<p>Hi! This is Autbot, an AI chatbot to help children with Autism learn how to better socialize and improve their English language skills.</p>
+			<p>Check out the <a href="https://github.com/ikathuria/Autbot">Github repository</a>.</p>
+		</div>
+
+		<div class="col">
+			<figure>
+				<p>Learn how to say <i>Autbot</i>!</p>
+				<audio controls src="{{ url_for('static', filename='audio/Autbot.mp3') }}"></audio>
+			</figure>
+		</div>
+	</div>
+
+	<div class="row">
+		<h2>Authors</h2>
+		<div class="col">
+			<h3>Ishani Kathuria</h3>
+		</div>
+
+		<div class="col">
+			<h3>Kamad Saxena</h3>
+		</div>
+	</div>
 </div>
 
 {% endblock %}
