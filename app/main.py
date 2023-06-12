@@ -95,7 +95,7 @@ def home():
         last_chat=USER_RECORDING.last_chat,
         recording=USER_RECORDING.recording,
         image_path=url_for('static', filename='images/' + get_latest_image()),
-        response_path=url_for('static', filename='images/' + str(CHATBOT.response_audio - 1)),
+        response_path=url_for('static', filename=f'audio/{CHATBOT.response_audio - 1}.mp3'),
     )
 
 
